@@ -54,7 +54,7 @@ bash start-kronos.command
 ```
 
 The launcher creates `.venv-kronos`, installs KRONOS dependencies (including Qt
-for native setup), and opens a native provider/model/key window if needed. Subsequent runs reuse that
+for native setup), and opens a native provider/key window if needed. Subsequent runs reuse that
 environment; dependencies reinstall only when the requirements file changes.
 The launcher does not install or alter global Python packages.
 
@@ -71,7 +71,8 @@ start-kronos.cmd setup
 ```
 
 Paste the key using the button or the normal keyboard shortcut, choose the
-provider and model, then click **Save connection** and **Continue**. The key is
+provider, then click **Save connection** and **Continue**. KRONOS chooses the
+default model automatically. The key is
 masked by default. The window reports save errors inline; saving does not claim
 to validate API access. The regular launcher continues to the existing text
 assistant after setup. This window configures the new KRONOS runtime, not the
@@ -92,11 +93,18 @@ back to storing the key in JSON. Environment variables also work:
 | NVIDIA NIM | `NVIDIA_API_KEY` | `https://integrate.api.nvidia.com/v1` |
 | OpenRouter | `OPENROUTER_API_KEY` | `https://openrouter.ai/api/v1` |
 
+Default models:
+
+| Provider | Default model behavior |
+| --- | --- |
+| Groq | `openai/gpt-oss-120b` |
+| NVIDIA NIM | `meta/llama-3.3-70b-instruct` |
+| OpenRouter | `openrouter/auto` with max capability routing |
+
 `KRONOS_PROVIDER` and `KRONOS_MODEL` override the configuration. The default
 configuration file is `~/.kronos/config.json`; `--config PATH` selects another.
-Changing provider also requires a model ID supported by that provider. Only one
-provider/model is used per session today. Per-task routing across all three is
-not implemented; the shared provider boundary is in place.
+Only one provider/model is used per session today. Per-task routing across all
+three is not implemented; the shared provider boundary is in place.
 
 Official provider references used for the transport:
 [Groq compatibility](https://console.groq.com/docs/openai),

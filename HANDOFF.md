@@ -3,17 +3,21 @@
 ## Follow-up: native API-key setup
 
 `python -m kronos setup` now opens a native PyQt6 window with custom QPainter
-artwork, provider selection, model entry, masked key entry, Paste/Show controls,
+artwork, provider selection, automatic model selection, masked key entry, Paste/Show controls,
 and background credential saving. Terminal setup remains available with
 `setup --terminal`. Reopen via `bash start-kronos.command setup` on Mac or
 `start-kronos.cmd setup` on Windows after updating the checkout.
 
 New files: `kronos/setup_ui.py`, `kronos/credentials.py`, `tests/test_setup.py`.
 Updated: CLI setup dispatch, credential lookup (stored key precedes environment
-key), Qt dependencies, and run documentation. Save checks read-back from the OS
+key), default model selection, Qt dependencies, and run documentation. Save checks read-back from the OS
 credential store and never writes the key to configuration. It does not claim
 to test provider access. A blocked keychain/configuration write shows an inline
 error. Existing timeout/token settings are retained.
+
+Current defaults: Groq `openai/gpt-oss-120b`, NVIDIA
+`meta/llama-3.3-70b-instruct`, OpenRouter `openrouter/auto` with max capability
+routing.
 
 The UI was rendered and inspected on Windows. Save tests use a mock credential
 store, so no real key was changed during validation. Mac Keychain interaction

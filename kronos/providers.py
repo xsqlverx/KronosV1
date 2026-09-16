@@ -15,9 +15,21 @@ PROVIDERS = {
     "nvidia": ("https://integrate.api.nvidia.com/v1", "NVIDIA_API_KEY"),
 }
 
+DEFAULT_MODELS = {
+    "groq": "openai/gpt-oss-120b",
+    "openrouter": "openrouter/auto",
+    "nvidia": "meta/llama-3.3-70b-instruct",
+}
+
 
 class ProviderError(Exception):
     pass
+
+
+def default_model(provider: str) -> str:
+    if provider not in DEFAULT_MODELS:
+        raise ProviderError(f"Choose a provider from {', '.join(PROVIDERS)}.")
+    return DEFAULT_MODELS[provider]
 
 
 @dataclass(frozen=True)
@@ -82,6 +94,8 @@ class Client:
         payload = {"model": self.config.model, "messages": messages,
                    "stream": False, "max_tokens": self.config.max_tokens,
                    "tools": tools, "tool_choice": "auto"}
+        if self.config.provider == "openrouter" and self.config.model == "openrouter/auto":
+            payload["plugins"] = [{"id": "auto-router", "cost_tier": "max"}]
         request = urllib.request.Request(
             PROVIDERS[self.config.provider][0] + "/chat/completions",
             data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),

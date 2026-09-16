@@ -7,7 +7,7 @@ import tempfile
 from dataclasses import asdict
 from pathlib import Path
 
-from .providers import Config, PROVIDERS, ProviderError
+from .providers import Config, PROVIDERS, ProviderError, default_model
 
 
 class SetupError(Exception):
@@ -18,8 +18,10 @@ def save_connection(path: Path, provider: str, model: str, key: str, store=None)
     model, key = model.strip(), key.strip()
     if provider not in PROVIDERS:
         raise SetupError("Choose a provider.")
+    if not model:
+        model = default_model(provider)
     if not model or len(model) > 256 or any(c.isspace() for c in model):
-        raise SetupError("Enter a valid model ID without spaces.")
+        raise SetupError("KRONOS could not choose a valid default model for this provider.")
     if not key or any(c.isspace() for c in key):
         raise SetupError("Paste your API key. It must not contain spaces or line breaks.")
     if len(key) > 4096:

@@ -28,6 +28,10 @@ class CredentialTests(unittest.TestCase):
         self.assertNotIn("fake-test-key", self.path.read_text())
         self.assertEqual(json.loads(self.path.read_text())["timeout"], 79)
 
+    def test_blank_model_uses_provider_default(self):
+        save_connection(self.path, "openrouter", "", "fake-test-key", self.store)
+        self.assertEqual(json.loads(self.path.read_text())["model"], "openrouter/auto")
+
     def test_storage_failure_preserves_existing_config_and_redacts_exception(self):
         self.path.write_text('{"model":"old"}')
         self.store.set_password.side_effect = RuntimeError("fake-test-key")
@@ -44,7 +48,7 @@ class CredentialTests(unittest.TestCase):
         self.assertFalse(self.path.exists())
 
     def test_invalid_input_does_not_touch_store(self):
-        for provider, model, key in (("bad", "id", "key"), ("groq", "", "key"), ("groq", "id", ""), ("groq", "id", "key\nsecond")):
+        for provider, model, key in (("bad", "id", "key"), ("groq", "id", ""), ("groq", "id", "key\nsecond")):
             with self.assertRaises(SetupError):
                 save_connection(self.path, provider, model, key, self.store)
         self.store.set_password.assert_not_called()
@@ -85,6 +89,8 @@ class SetupWindowTests(unittest.TestCase):
         self.addCleanup(self.window.close)
 
     def test_mask_show_paste_and_provider_change(self):
+        self.assertEqual(self.window.model.text(), "openai/gpt-oss-120b")
+        self.assertTrue(self.window.model.isReadOnly())
         self.assertEqual(self.window.key.echoMode(), QLineEdit.EchoMode.Password)
         # Do not overwrite the user's real clipboard during this test.
         clipboard = MagicMock()
@@ -97,6 +103,7 @@ class SetupWindowTests(unittest.TestCase):
         self.window.provider_buttons["nvidia"].click()
         self.assertEqual(self.window.key.text(), "")
         self.assertEqual(self.window.key.echoMode(), QLineEdit.EchoMode.Password)
+        self.assertEqual(self.window.model.text(), "meta/llama-3.3-70b-instruct")
 
     def test_empty_key_shows_inline_error(self):
         self.window.save_button.click()

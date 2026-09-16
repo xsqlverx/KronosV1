@@ -11,7 +11,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from .agent import Agent, strict_json
-from .providers import Client, Config, PROVIDERS, ProviderError, find_key
+from .providers import Client, Config, PROVIDERS, ProviderError, default_model, find_key
 from .runtime import build_registry
 
 
@@ -36,10 +36,8 @@ def setup_terminal(path: Path) -> int:
     if provider not in PROVIDERS:
         print("Unknown provider.")
         return 2
-    model = input("Tool-capable model ID from your provider: ").strip()
-    if not model:
-        print("A model ID is required.")
-        return 2
+    model = default_model(provider)
+    print(f"Using default model: {model}")
     key = getpass.getpass("API key (hidden; blank to use the environment): ").strip()
     if key:
         try:

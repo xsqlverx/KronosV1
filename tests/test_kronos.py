@@ -256,6 +256,18 @@ class ProviderTests(unittest.TestCase):
                 self.assertEqual(json.loads(request.data)["model"], "chosen-model")
                 self.assertEqual(request.get_header("Authorization"), "Bearer test-secret")
 
+    def test_openrouter_auto_uses_max_router_tier(self):
+        client = Client(Config(provider="openrouter", model="openrouter/auto"), key="test-secret")
+        response = MagicMock()
+        response.__enter__.return_value.read.return_value = b'{"choices":[{"message":{"content":"hello"}}]}'
+        client.opener = MagicMock()
+        client.opener.open.return_value = response
+        client.complete([], [])
+        request = client.opener.open.call_args.args[0]
+        payload = json.loads(request.data)
+        self.assertEqual(payload["model"], "openrouter/auto")
+        self.assertEqual(payload["plugins"], [{"id": "auto-router", "cost_tier": "max"}])
+
     def test_http_body_with_secret_is_not_exposed(self):
         client = Client(Config(model="m"), key="test-secret")
         client.opener = MagicMock()

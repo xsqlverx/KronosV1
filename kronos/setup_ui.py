@@ -13,11 +13,15 @@ from PyQt6.QtWidgets import (
 )
 
 from .credentials import SetupError, save_connection
-from .providers import Config, ProviderError
+from .providers import Config, ProviderError, default_model
 
 
 PROVIDER_LABELS = {"groq": "Groq", "openrouter": "OpenRouter", "nvidia": "NVIDIA"}
-MODEL_HINTS = {"groq": "openai/gpt-oss-20b", "openrouter": "Provider/model ID", "nvidia": "Publisher/model ID"}
+MODEL_NOTES = {
+    "groq": "KRONOS will use Groq's strongest hosted tool-capable default.",
+    "openrouter": "KRONOS will let OpenRouter auto-route to the best model for each request.",
+    "nvidia": "KRONOS will use NVIDIA's Llama 3.3 70B tool-capable default.",
+}
 
 
 def font(size: int, weight=QFont.Weight.Normal, tracking: float = 0) -> QFont:
@@ -159,7 +163,7 @@ class SetupDialog(QDialog):
         layout.addSpacing(23)
         layout.addWidget(label("Bring KRONOS online.", 26, weight=QFont.Weight.DemiBold))
         layout.addSpacing(7)
-        layout.addWidget(label("Choose its intelligence. Add your key.\nMake it yours.", 11, "#AAA6B8"))
+        layout.addWidget(label("Choose the provider. Add your key.\nKRONOS picks the model.", 11, "#AAA6B8"))
         layout.addSpacing(26)
         layout.addWidget(label("PROVIDER", 9, "#AAA6B8", QFont.Weight.DemiBold))
         layout.addSpacing(9)
@@ -179,9 +183,13 @@ class SetupDialog(QDialog):
         layout.addSpacing(8)
         self.model = QLineEdit()
         self.model.setFont(font(11))
-        self.model.setAccessibleName("Model ID")
+        self.model.setAccessibleName("Selected model")
         self.model.setMinimumHeight(47)
+        self.model.setReadOnly(True)
         layout.addWidget(self.model)
+        layout.addSpacing(7)
+        self.model_note = label("", 10, "#A29BAC")
+        layout.addWidget(self.model_note)
         layout.addSpacing(18)
         key_heading = QHBoxLayout()
         key_heading.addWidget(label("API KEY", 9, "#AAA6B8", QFont.Weight.DemiBold))
@@ -244,8 +252,9 @@ class SetupDialog(QDialog):
             self.reveal.setChecked(False)
             self.toggle_key(False)
         if changed or not self.model.text():
-            self.model.setText(MODEL_HINTS[selected] if selected == "groq" else "")
-        self.model.setPlaceholderText(MODEL_HINTS[selected])
+            self.model.setText(default_model(selected))
+        self.model.setPlaceholderText(default_model(selected))
+        self.model_note.setText(MODEL_NOTES[selected])
 
     def toggle_key(self, visible):
         self.key.setEchoMode(QLineEdit.EchoMode.Normal if visible else QLineEdit.EchoMode.Password)
@@ -261,9 +270,9 @@ class SetupDialog(QDialog):
             return
         if self.worker and self.worker.isRunning():
             return
-        if not self.model.text().strip() or not self.key.text().strip():
-            self.status.setText("Add both a model ID and an API key to continue.")
-            (self.key if self.model.text().strip() else self.model).setFocus()
+        if not self.key.text().strip():
+            self.status.setText("Paste an API key to continue.")
+            self.key.setFocus()
             return
         self.set_busy(True)
         self.status.setStyleSheet("color: #BDB0D5;")
