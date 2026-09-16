@@ -52,14 +52,14 @@ class Config:
 
 
 def find_key(provider: str) -> str:
-    value = os.environ.get(PROVIDERS[provider][1], "").strip()
-    if value:
-        return value
     try:
         import keyring
-        return keyring.get_password("kronos", provider) or ""
+        stored = keyring.get_password("kronos", provider)
+        if stored:
+            return stored
     except Exception:
-        return ""
+        pass
+    return os.environ.get(PROVIDERS[provider][1], "").strip()
 
 
 class _NoRedirect(urllib.request.HTTPRedirectHandler):

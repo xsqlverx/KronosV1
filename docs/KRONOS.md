@@ -53,12 +53,36 @@ macOS (from Terminal inside the checkout):
 bash start-kronos.command
 ```
 
-The launcher creates `.venv-kronos`, installs the small KRONOS dependency list,
-and starts a provider/model/key wizard if needed. Subsequent runs reuse that
+The launcher creates `.venv-kronos`, installs KRONOS dependencies (including Qt
+for native setup), and opens a native provider/model/key window if needed. Subsequent runs reuse that
 environment; dependencies reinstall only when the requirements file changes.
 The launcher does not install or alter global Python packages.
 
+To reopen the native key-entry window after updating the checkout:
+
+```bash
+# macOS
+bash start-kronos.command setup
+```
+
+```bat
+:: Windows
+start-kronos.cmd setup
+```
+
+Paste the key using the button or the normal keyboard shortcut, choose the
+provider and model, then click **Save connection** and **Continue**. The key is
+masked by default. The window reports save errors inline; saving does not claim
+to validate API access. The regular launcher continues to the existing text
+assistant after setup. This window configures the new KRONOS runtime, not the
+legacy Gemini application launched by `main.py`.
+
+For a text-only fallback: `python -m kronos setup --terminal`. Hidden terminal
+key entry does not echo characters; native setup avoids that confusion.
+
 Keys entered in setup are saved through `keyring` to the OS credential store.
+Saved credentials take priority over environment keys, so replacing a key in
+the window takes effect even if an older environment key remains set.
 If the credential store is unavailable, setup reports that fact; it never falls
 back to storing the key in JSON. Environment variables also work:
 

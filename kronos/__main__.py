@@ -28,7 +28,7 @@ def default_config() -> Path:
     return Path.home() / ".kronos" / "config.json"
 
 
-def setup(path: Path) -> int:
+def setup_terminal(path: Path) -> int:
     if not sys.stdin.isatty():
         print("Setup requires an interactive terminal.")
         return 2
@@ -63,7 +63,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--root", type=Path, action="append", help="Allowed file root, repeatable. Default: home and working directory.")
     sub = parser.add_subparsers(dest="command")
     sub.add_parser("doctor", help="Read-only environment and device checks; no network or AI calls")
-    sub.add_parser("setup", help="Configure a provider and store its key in the OS credential store")
+    setup_parser = sub.add_parser("setup", help="Open the native API-key setup window")
+    setup_parser.add_argument("--terminal", action="store_true", help="Use legacy terminal prompts instead")
     sub.add_parser("tools", help="Print tool schemas without model credentials")
     call = sub.add_parser("call", help="Directly invoke a tool without a model")
     call.add_argument("tool")
@@ -72,7 +73,14 @@ def main(argv: list[str] | None = None) -> int:
     chat.add_argument("--once", help="Process a single request")
     args = parser.parse_args(argv)
     if args.command == "setup":
-        return setup(args.config)
+        if args.terminal:
+            return setup_terminal(args.config)
+        try:
+            from .setup_ui import run_setup
+        except ImportError:
+            print("Install the updated requirements-kronos.txt or rerun start-kronos to enable the native setup window.")
+            return 2
+        return run_setup(args.config)
     roots = [p.resolve() for p in (args.root or [Path.home(), Path.cwd()])]
     registry = build_registry(roots, confirm)
     if args.command == "tools":
