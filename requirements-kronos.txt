@@ -1,0 +1,6 @@
+# The text agent and app discovery use the Python standard library.
+# Optional features: OS credential storage, recoverable trash, Windows volume.
+keyring==25.7.0
+Send2Trash==1.8.3
+pycaw==20251023; sys_platform == "win32"
+comtypes==1.4.16; sys_platform == "win32"

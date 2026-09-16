@@ -1,0 +1,25 @@
+name: KRONOS core
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  offline-core:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+        python: ['3.11', '3.12']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install -r requirements-kronos.txt
+      - run: python -m pip check
+      - run: python -m unittest discover -s tests -v
+      - run: python -m kronos tools
+      - run: python -m kronos doctor
+      - if: runner.os == 'macOS'
+        run: bash -n start-kronos.command
